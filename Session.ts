@@ -1,7 +1,5 @@
 import axios, { AxiosResponse } from "axios";
 import { HttpsProxyAgent } from "https-proxy-agent";
-import settings from "../settings";
-type dataType = "json" | "text" | any;
 class Session {
     cookies: any = {};
     globalHeaders: any = {
