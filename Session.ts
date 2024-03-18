@@ -1,5 +1,6 @@
 import axios, { AxiosResponse } from "axios";
 import { HttpsProxyAgent } from "https-proxy-agent";
+import settings from "../settings";
 type dataType = "json" | "text" | any;
 class Session {
     cookies: any = {};
@@ -18,17 +19,18 @@ class Session {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 Edg/122.0.0.0",
     };
     httpsAgent:HttpsProxyAgent<string>|null;
+    selectedProxie:string|undefined;
     constructor(proxyUri: string|null) {
         if (proxyUri) {
             this.httpsAgent = new HttpsProxyAgent(proxyUri)    
         }else{
             this.httpsAgent = null
         }
-        
-    }
-    async get(url: string, method?: any, returnType?: dataType): Promise<AxiosResponse<any, any>> {
+    }}
+    async get(url: string, method?: any): Promise<AxiosResponse<any, any>> {
         const response = await axios.get(url, {
             httpsAgent: this.httpsAgent,
+            httpAgent: this.httpsAgent,
             headers: {
                 ...method,
                 ...this.globalHeaders,
@@ -38,15 +40,16 @@ class Session {
         let responseCookies = response.headers["set-cookie"]
         this.setCookies(responseCookies)
 
-        return this.returnData(returnType, response)
+        return response
     }
 
-    async post(url: string, method: any, returnType: dataType, body: string): Promise<AxiosResponse<any, any>> {
+    async post(url: string, method: any, body: string): Promise<AxiosResponse<any, any>> {
         const response = await axios.post(
             url,
             body
             , {
                 httpsAgent: this.httpsAgent,
+                httpAgent: this.httpsAgent,
                 headers: {
                     ...method,
                     ...this.globalHeaders,
@@ -55,13 +58,13 @@ class Session {
             })
         let responseCookies = response.headers["set-cookie"]
         this.setCookies(responseCookies)
-        return this.returnData(returnType, response)
+        return response
     }
-    async put(url: string, method: any, returnType: dataType, body: string): Promise<AxiosResponse<any, any>> {
+    async put(url: string, method: any, body: string): Promise<AxiosResponse<any, any>> {
         const response = await axios.put(
             url, body, {
             httpsAgent: this.httpsAgent,
-
+            httpAgent: this.httpsAgent,
             headers: {
                 ...method,
                 ...this.globalHeaders,
@@ -70,7 +73,7 @@ class Session {
         })
         let responseCookies = response.headers["set-cookie"]
         this.setCookies(responseCookies)
-        return this.returnData(returnType, response)
+        return response
     }
 
     setCookies(newCookies: Array<string> | undefined) {
@@ -87,19 +90,6 @@ class Session {
             cookieString += `${key}=${this.cookies[key]}; `
         }
         return cookieString;
-    }
-
-    async returnData(returnType: dataType, response: AxiosResponse<any, any>) {
-        switch (returnType) {
-            case "json":
-                const jsonData: any = await response.data();
-                return jsonData
-            case "text":
-                const textData: string = await response.data();
-                return textData
-            default:
-                return response;
-        }
     }
 }
 
